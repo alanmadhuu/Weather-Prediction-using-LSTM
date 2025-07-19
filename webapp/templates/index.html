@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weather Forecast</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+                        url("{{ url_for('static', filename='bgpic_miniproject.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        .card {
+            background-color: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 15px;
+        }
+        .calendar-box {
+            display: inline-block;
+            width: 70px;
+            padding: 5px;
+            margin: 4px;
+            background: transparent;
+            color: white;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            border: 1px solid white;
+            cursor: pointer;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        .calendar-box.selected {
+            background-color: rgba(255,255,255,0.3) !important;
+            border: 2px solid #4CAF50;
+        }
+        .weather-card {
+            transition: all 0.3s ease;
+        }
+        .weather-card:hover {
+            transform: translateY(-5px);
+        }
+        .detailed-view {
+            background-color: rgba(255,255,255,0.15);
+        }
+        .default-message {
+            text-align: center;
+            padding: 2rem;
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+        .location-header {
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container py-5">
+    <div class="location-header text-center">
+        <h2>Weather Forecast</h2>
+        <h4>{% if selected_location %}Viewing: {{ selected_location }}{% endif %}</h4>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12 text-center">
+            {% if selected_date %}
+                <a href="{{ url_for('clear_date') }}" class="btn btn-sm btn-danger mb-3">
+                    Clear Selection
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            {% if selected_date and weather_data and not weather_data[0].error %}
+        {% for entry in weather_data %}
+        <div class="card p-4 mb-3 weather-card detailed-view">
+            <h4 class="text-center mb-3">{{ entry.display_date }} Forecast</h4>
+            <table class="table table-borderless text-white">
+                <tbody>
+                    <tr><th>Temperature</th><td>{{ entry.temp|round(1) }} °C</td></tr>
+                        <tr><th>Dew Point</th><td>{{ entry.dew_point|round(1) }} °C</td></tr>
+                    <tr><th>Pressure</th><td>{{ entry.pressure|round(1) }} hPa</td></tr>
+                    <tr><th>Cloud Cover</th><td>{{ entry.cloud_cover|round(1) }} %</td></tr>
+                    <tr><th>Wind Speed</th><td>{{ entry.wind_speed|round(1) }} km/h</td></tr>
+                    <tr><th>Wind Direction</th><td>{{ entry.wind_dir|round(0) }}°</td></tr>
+                </tbody>
+            </table>
+            <div class="suggestion-box mt-3">
+                {{ entry.suggestion }}
+            </div>
+        </div>
+        {% endfor %}
+    {% elif weather_data and weather_data[0].error %}
+        <div class="alert alert-danger">
+            Error loading weather data. Please try again later.
+        </div>
+    {% else %}
+        <div class="card p-4 mb-3">
+            <div class="default-message">
+                Select a date to view weather predictions
+            </div>
+        </div>
+    {% endif %}
+        </div>
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/heatmap.js@2.0.5/build/heatmap.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/leaflet-heatmap@1.0.0/leaflet-heatmap.js"></script>
+        <div class="col-md-6">
+            <div class="card p-4 h-100">
+                <h4 class="text-center mb-3">Temperature Heatmap</h4>
+                <div id="heatmap" style="height: 400px; width: 100%;"></div>
+            </div>
+        </div>
+        <script>
+            // Initialize map
+            var map = L.map('heatmap').setView([9.9816, 76.3016], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        
+            // Heatmap configuration
+            var cfg = {
+                "radius": 0.20,
+                "maxOpacity": 0.20, //.08 before
+                "scaleRadius": true,
+                "useLocalExtrema": true,    
+                latField: 'lat',
+                lngField: 'lon',
+                valueField: 'value',
+                gradient: {
+                    0.0: 'blue',
+                    0.4: 'cyan',
+                    0.6: 'lime',
+                    0.8: 'yellow',
+                    1.0: 'red'
+                }
+            };
+        
+            var heatmapLayer = new HeatmapOverlay(cfg);
+            map.addLayer(heatmapLayer);
+        
+            // Set canvas property to fix warning
+            document.querySelectorAll('canvas').forEach(canvas => {
+                canvas.willReadFrequently = true;
+            });
+        
+            function updateHeatmap(date) {
+                fetch(`/get_heatmap_data?date=${date}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) return;
+                        
+                        // Auto-scale heatmap values
+                        const values = data.map(point => point.value);
+                        heatmapLayer.setData({
+                            max: Math.max(...values),
+                            min: Math.min(...values),
+                            data: data
+                        });
+                    })
+                    .catch(console.error);
+            }
+        
+            // Initial load
+            {% if selected_date %}
+            updateHeatmap('{{ selected_date }}');
+            {% endif %}
+        </script>
+    <div class="row mt-4">
+        <div class="col-md-4 mb-3">
+            <div class="card p-3 h-100 text-center">
+                <h5>4-Day Forecast</h5>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    {% for date_obj, display_str, iso_date in calendar_data %}
+                        <a href="{{ url_for('select_date', date=iso_date) }}" 
+                           class="calendar-box {% if selected_date == iso_date %}selected{% endif %}">
+                            {{ display_str }}
+                        </a>
+                    {% endfor %}
+                </div>
+                <!-- Add this button -->
+                <a href="{{ url_for('clear_date') }}" class="btn btn-primary mt-3">
+                    Show Next 4 Days Forecast
+                </a>
+            </div>
+        </div>
+
+        <!-- Location Dropdown -->
+    <div class="col-md-4 mb-3">
+        <div class="card p-3 h-100">
+            <h5 class="text-center">Choose Location</h5>
+            <form method="POST" action="/select_location">
+                <div class="form-group text-center">
+                    <select name="location" class="form-control">
+                        {% for loc in locations %}
+                            <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>
+                                {{ loc }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn btn-info btn-sm">Update Location</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card p-3 h-100">
+                <h5 class="text-center">Weather Advisory</h5>
+                <div class="weather-suggestion">
+                    {% if selected_date and weather_data %}
+                        {{ weather_data[0].suggestion }}
+                    {% else %}
+                        Select a date to view weather advisories
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

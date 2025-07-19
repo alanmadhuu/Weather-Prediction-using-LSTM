@@ -1,0 +1,1 @@
+        print(f"Error making prediction: {str(e)}")
