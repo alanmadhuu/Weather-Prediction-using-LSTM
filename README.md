@@ -1,18 +1,19 @@
 # 🌦 Weather Prediction using LSTM and XGBoost
 
-This project implements a hybrid deep learning and machine learning model to forecast weather data. It combines **LSTM (Long Short-Term Memory)** networks for temporal feature extraction with **XGBoost** for final prediction, enabling accurate region-wise weather forecasting.
+This project implements a hybrid deep learning and machine learning system to forecast weather conditions. It combines **LSTM (Long Short-Term Memory)** networks for temporal sequence learning with **XGBoost** for accurate prediction.
+
+A **Flask-based Python backend** handles the model logic and exposes APIs, while a simple **HTML frontend** provides a user-friendly interface for interaction.
 
 ---
 
 ## 📌 Key Features
 
-- Region-specific model training
-- Sequence modeling using LSTM
-- Feature-based prediction using XGBoost
-- Unified pipeline for preprocessing, sequence generation, LSTM encoding, and final prediction
-- Scikit-learn compatible pipeline for seamless integration and inference
-
----
+- Region-specific weather prediction (11 regions)
+- LSTM for temporal sequence modeling
+- XGBoost for final prediction
+- End-to-end unified prediction pipeline per region
+- Web application with Flask backend and HTML frontend
+- Modular code for easy extension or region scaling
 
 ## 🔁 Model Pipeline Overview
 
