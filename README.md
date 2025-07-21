@@ -2,7 +2,7 @@
 
 This project implements a hybrid deep learning and machine learning system to forecast weather conditions. It combines **LSTM (Long Short-Term Memory)** networks for temporal sequence learning with **XGBoost** for accurate prediction.
 
-A **Django-based Python backend** handles the model logic and exposes APIs, while a simple **HTML frontend** provides a user-friendly interface for interaction.
+A **Flask-based Python backend** handles the model logic and exposes APIs, while a simple **HTML frontend** provides a user-friendly interface for interaction.
 
 ---
 
@@ -12,7 +12,7 @@ A **Django-based Python backend** handles the model logic and exposes APIs, whil
 - LSTM for temporal sequence modeling
 - XGBoost for final prediction
 - End-to-end unified prediction pipeline per region
-- Web application with Django backend and HTML frontend
+- Web application with Flask backend and HTML frontend
 - Modular code for easy extension or region scaling
 
 ## 🔁 Model Pipeline Overview
