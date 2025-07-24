@@ -2,8 +2,8 @@ import xarray as xr
 import pandas as pd
 
 # File path
-grib_file = r"C:/Users/Aaron/Downloads/angamaly_2015_2007.grib"
-csv_file = r"C:/Users/Aaron/Downloads/angamaly_2015_2007.csv"
+grib_file = r"C:/Users/Aaron/Downloads/angamaly_2015_2007.grib" //File path
+csv_file = r"C:/Users/Aaron/Downloads/angamaly_2015_2007.csv"  //New file
 
 try:
     # Open GRIB file using cfgrib without caching issues
